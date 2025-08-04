@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <div class="d-flex justify-content-between align-items-center">
+      <h2>Setup Fixtures</h2>
+      <a href="/admin" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+  </div>
+  <div class="card-body">
+    {% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
+
+    {% if success %}
+    <div class="alert alert-success">{{ success }}</div>
+    {% endif %}
+
+    {% if active_gameweek %}
+    <div class="alert alert-info">
+      <strong>Setting up fixtures for:</strong><br>
+      {{ active_gameweek.season }} - Gameweek {{ active_gameweek.week_number }}
+    </div>
+
+    <!-- Fixture Setup Form -->
+    <form method="post" action="/admin/fixtures">
+      <div class="fixtures-setup">
+        <h4>Enter 6 Fixtures</h4>
+        <p class="text-muted">You must enter exactly 6 fixtures for the gameweek.</p>
+
+        {% for i in range(end=6) %}
+        <div class="card fixture-card">
+          <div class="card-header">
+            <h5>Fixture {{ i + 1 }}</h5>
+          </div>
+          <div class="card-body">
+            <div class="fixture-form">
+              <div class="team-inputs">
+                <div class="form-group">
+                  <label for="home_team_{{ i }}" class="form-label">Home Team</label>
+                  <input type="text"
+                         id="home_team_{{ i }}"
+                         name="fixtures[{{ i }}].home_team"
+                         class="form-control"
+                         placeholder="e.g., Arsenal"
+                         {% if fixtures and fixtures[i] %}value="{{ fixtures[i].home_team }}"{% endif %}
+                         required>
+                </div>
+
+                <div class="vs-separator">VS</div>
+
+                <div class="form-group">
+                  <label for="away_team_{{ i }}" class="form-label">Away Team</label>
+                  <input type="text"
+                         id="away_team_{{ i }}"
+                         name="fixtures[{{ i }}].away_team"
+                         class="form-control"
+                         placeholder="e.g., Chelsea"
+                         {% if fixtures and fixtures[i] %}value="{{ fixtures[i].away_team }}"{% endif %}
+                         required>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="kickoff_time_{{ i }}" class="form-label">Kickoff Time</label>
+                <input type="datetime-local"
+                       id="kickoff_time_{{ i }}"
+                       name="fixtures[{{ i }}].kickoff_time"
+                       class="form-control"
+                       {% if fixtures and fixtures[i] %}value="{{ fixtures[i].kickoff_time.format('%Y-%m-%dT%H:%M') }}"{% endif %}
+                       required>
+              </div>
+
+              <input type="hidden" name="fixtures[{{ i }}].fixture_order" value="{{ i + 1 }}">
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <div class="text-center mt-4">
+        <button type="submit" class="btn btn-primary btn-lg">
+          {% if fixtures %}Update Fixtures{% else %}Create Fixtures{% endif %}
+        </button>
+      </div>
+    </form>
+
+    <!-- Existing Fixtures Display -->
+    {% if fixtures %}
+    <div class="card mt-4">
+      <div class="card-header">
+        <h4>Current Fixtures</h4>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+            <tr>
+              <th>#</th>
+              <th>Home Team</th>
+              <th>Away Team</th>
+              <th>Kickoff</th>
+              <th>Status</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for fixture in fixtures %}
+            <tr>
+              <td>{{ fixture.fixture_order }}</td>
+              <td><strong>{{ fixture.home_team }}</strong></td>
+              <td><strong>{{ fixture.away_team }}</strong></td>
+              <td>{{ fixture.kickoff_time.format("%a %m/%d<br>%I:%M %p")|safe }}</td>
+              <td>
+                {% if fixture.home_score.is_some() and fixture.away_score.is_some() %}
+                <span class="badge badge-success">
+                                                        {{ fixture.home_score.unwrap() }} - {{ fixture.away_score.unwrap() }}
+                                                    </span>
+                {% else %}
+                <span class="badge badge-secondary">Pending</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        {% if fixtures|length == 6 %}
+        <div class="alert alert-success">
+          ✅ All 6 fixtures are set up! Users can now submit predictions.
+        </div>
+        {% else %}
+        <div class="alert alert-warning">
+          ⚠️ Only {{ fixtures|length }} fixtures set up. You need exactly 6 fixtures.
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="alert alert-warning">
+      <strong>No Active Gameweek</strong><br>
+      You need to create and activate a gameweek before setting up fixtures.
+      <a href="/admin/gameweeks" class="btn btn-primary mt-2">Create Gameweek</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<style>
+  .fixtures-setup {
+    margin-bottom: 2rem;
+  }
+
+  .fixture-card {
+    margin-bottom: 1rem;
+  }
+
+  .fixture-form {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .team-inputs {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 1rem;
+    align-items: end;
+  }
+
+  .vs-separator {
+    font-weight: bold;
+    font-size: 1.2rem;
+    color: #6c757d;
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+
+  .badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .badge-success {
+    background-color: #28a745;
+    color: white;
+  }
+
+  .badge-secondary {
+    background-color: #6c757d;
+    color: white;
+  }
+
+  .badge-warning {
+    background-color: #ffc107;
+    color: #212529;
+  }
+
+  .btn-lg {
+    padding: 0.75rem 2rem;
+    font-size: 1.1rem;
+  }
+
+  @media (max-width: 768px) {
+    .team-inputs {
+      grid-template-columns: 1fr;
+      gap: 0.5rem;
+    }
+
+    .vs-separator {
+      order: 2;
+      margin: 0.5rem 0;
+    }
+
+    .team-inputs .form-group:first-child {
+      order: 1;
+    }
+
+    .team-inputs .form-group:last-child {
+      order: 3;
+    }
+
+    .d-flex {
+      flex-direction: column;
+      gap: 1rem;
+    }
+  }
+</style>
+{% endblock %}

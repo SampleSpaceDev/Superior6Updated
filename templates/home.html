@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}Superior 6 - Football Prediction Game{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-16 px-4 rounded-lg mb-8">
+    <div class="text-center">
+        <h1 class="text-4xl md:text-6xl font-bold mb-4">Superior 6</h1>
+        <p class="text-xl md:text-2xl mb-8">Predict 6 football scores. Win cash prizes!</p>
+
+        {% if has_user %}
+        <div class="space-x-4">
+            <a href="/dashboard" class="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition">
+                Go to Dashboard
+            </a>
+            <a href="/predictions" class="border-2 border-white text-white px-6 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition">
+                Make Predictions
+            </a>
+        </div>
+        {% else %}
+        <div class="space-x-4">
+            <a href="/register" class="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition">
+                Get Started
+            </a>
+            <a href="/login" class="border-2 border-white text-white px-6 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition">
+                Sign In
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="grid md:grid-cols-2 gap-8">
+    <!-- Current Gameweek -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-2xl font-bold text-gray-900 mb-4">Current Gameweek</h2>
+
+        {% if has_gameweek %}
+        <div class="space-y-3">
+            <div class="flex justify-between items-center">
+                <span class="text-gray-600">Week:</span>
+                <span class="font-semibold">{{ current_gameweek.as_ref().unwrap().week_number }}</span>
+            </div>
+            <div class="flex justify-between items-center">
+                <span class="text-gray-600">Season:</span>
+                <span class="font-semibold">{{ current_gameweek.as_ref().unwrap().season }}</span>
+            </div>
+            <div class="flex justify-between items-center">
+                <span class="text-gray-600">Deadline:</span>
+                <span class="font-semibold text-red-600">
+                        {{ current_gameweek.as_ref().unwrap().deadline.format("%a %d %b, %H:%M") }}
+                    </span>
+            </div>
+        </div>
+
+        {% if has_user %}
+        <div class="mt-6">
+            <a href="/predictions" class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition block text-center">
+                Submit Predictions
+            </a>
+        </div>
+        {% endif %}
+        {% else %}
+        <p class="text-gray-600">No active gameweek at the moment. Check back soon!</p>
+        {% endif %}
+    </div>
+
+    <!-- Leaderboard Preview -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-2xl font-bold text-gray-900 mb-4">Season Leaders</h2>
+
+        {% if has_players %}
+        <div class="space-y-3">
+            {% for player in top_players %}
+            <div class="flex justify-between items-center py-2 {% if loop.first %}border-b-2 border-yellow-400 bg-yellow-50{% else if loop.index == 2 %}border-b-2 border-gray-400 bg-gray-50{% else if loop.index == 3 %}border-b-2 border-orange-400 bg-orange-50{% else %}border-b border-gray-200{% endif %}">
+                <div class="flex items-center space-x-3">
+                    <span class="text-lg font-bold text-gray-500">{{ loop.index }}</span>
+                    <span class="font-semibold">{{ player.display_name }}</span>
+                </div>
+                <span class="text-blue-600 font-bold">{{ player.total_points }} pts</span>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="mt-6">
+            <a href="/leaderboard" class="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition block text-center">
+                View Full Leaderboard
+            </a>
+        </div>
+        {% else %}
+        <p class="text-gray-600">No scores yet this season. Be the first to make predictions!</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- How to Play -->
+<div class="bg-white rounded-lg shadow-md p-6 mt-8">
+    <h2 class="text-2xl font-bold text-gray-900 mb-6">How to Play</h2>
+
+    <div class="grid md:grid-cols-3 gap-6">
+        <div class="text-center">
+            <div class="bg-blue-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                <span class="text-2xl font-bold text-blue-600">1</span>
+            </div>
+            <h3 class="font-semibold mb-2">Predict Scores</h3>
+            <p class="text-gray-600">Each week, predict the exact scores of 6 selected football fixtures.</p>
+        </div>
+
+        <div class="text-center">
+            <div class="bg-blue-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                <span class="text-2xl font-bold text-blue-600">2</span>
+            </div>
+            <h3 class="font-semibold mb-2">Earn Points</h3>
+            <p class="text-gray-600">Get 5 points for exact scores, 2 points for correct results (win/draw/loss).</p>
+        </div>
+
+        <div class="text-center">
+            <div class="bg-blue-100 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                <span class="text-2xl font-bold text-blue-600">3</span>
+            </div>
+            <h3 class="font-semibold mb-2">Climb the League</h3>
+            <p class="text-gray-600">Compete on weekly and season leaderboards with your friends and family.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

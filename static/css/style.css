@@ -1,0 +1,102 @@
+/* Custom styles for Superior 6 */
+
+/* Gradient backgrounds */
+.gradient-hero {
+    background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+}
+
+/* Score input styling */
+.score-input {
+    @apply w-16 text-center border-2 border-gray-300 rounded-md py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-200;
+}
+
+/* Fixture card styling */
+.fixture-card {
+    @apply bg-white rounded-lg shadow-md p-4 border-l-4 border-blue-500;
+}
+
+.fixture-card:hover {
+    @apply shadow-lg transform scale-105 transition-all duration-200;
+}
+
+/* Leaderboard position indicators */
+.position-1 {
+    @apply bg-gradient-to-r from-yellow-400 to-yellow-600 text-white;
+}
+
+.position-2 {
+    @apply bg-gradient-to-r from-gray-400 to-gray-600 text-white;
+}
+
+.position-3 {
+    @apply bg-gradient-to-r from-orange-400 to-orange-600 text-white;
+}
+
+/* Button animations */
+.btn-primary {
+    @apply bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200 transform hover:scale-105;
+}
+
+.btn-secondary {
+    @apply bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200;
+}
+
+.btn-success {
+    @apply bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200;
+}
+
+.btn-danger {
+    @apply bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200;
+}
+
+/* Form styling */
+.form-input {
+    @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500;
+}
+
+.form-label {
+    @apply block text-sm font-medium text-gray-700 mb-1;
+}
+
+/* Status badges */
+.badge-success {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800;
+}
+
+.badge-warning {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800;
+}
+
+.badge-danger {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800;
+}
+
+.badge-info {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800;
+}
+
+/* Responsive utilities */
+@media (max-width: 640px) {
+    .fixture-card {
+        @apply px-3 py-3;
+    }
+
+    .score-input {
+        @apply w-12 py-1;
+    }
+}
+
+/* Loading animation */
+.loading {
+    @apply animate-pulse;
+}
+
+/* Error states */
+.error-input {
+    @apply border-red-500 focus:border-red-500 focus:ring-red-200;
+}
+
+/* Success states */
+.success-input {
+    @apply border-green-500 focus:border-green-500 focus:ring-green-200;
+}

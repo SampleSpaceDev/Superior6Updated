@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Superior 6{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="bg-gray-50 min-h-screen">
+<!-- Navigation -->
+<nav class="bg-blue-600 shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-16">
+            <div class="flex items-center">
+                <a href="/" class="text-white text-xl font-bold">Superior 6</a>
+            </div>
+
+            <div class="flex items-center space-x-4">
+                {% if has_user %}
+                <span class="text-blue-100">Hello, {{ display_name }}</span>
+                <a href="/dashboard" class="text-white hover:text-blue-200">Dashboard</a>
+                <a href="/predictions" class="text-white hover:text-blue-200">Predictions</a>
+                <a href="/leaderboard" class="text-white hover:text-blue-200">Leaderboard</a>
+                {% if is_admin %}
+                <a href="/admin" class="text-white hover:text-blue-200 bg-blue-700 px-3 py-1 rounded">Admin</a>
+                {% endif %}
+                <form method="POST" action="/logout" class="inline">
+                    <button type="submit" class="text-white hover:text-blue-200">Logout</button>
+                </form>
+                {% else %}
+                <a href="/login" class="text-white hover:text-blue-200">Login</a>
+                <a href="/register" class="bg-blue-500 hover:bg-blue-400 text-white px-4 py-2 rounded">Register</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Main Content -->
+<main class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+    {% block content %}{% endblock %}
+</main>
+
+<!-- Footer -->
+<footer class="bg-gray-800 text-white py-8 mt-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <p>&copy; 2024 Superior 6. Your friendly football prediction game.</p>
+    </div>
+</footer>
+
+<script src="/static/js/app.js"></script>
+</body>
+</html>

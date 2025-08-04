@@ -1,0 +1,282 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <div class="d-flex justify-content-between align-items-center">
+      <h2>Submit Match Results</h2>
+      <a href="/admin" class="btn btn-secondary">Back to Dashboard</a>
+    </div>
+  </div>
+  <div class="card-body">
+    {% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
+
+    {% if success %}
+    <div class="alert alert-success">{{ success }}</div>
+    {% endif %}
+
+    {% if active_gameweek %}
+    <div class="alert alert-info">
+      <strong>Submitting results for:</strong><br>
+      {{ active_gameweek.season }} - Gameweek {{ active_gameweek.week_number }}
+    </div>
+
+    {% if fixtures %}
+    {% if fixtures|length == 6 %}
+
+    <!-- Results Submission Form -->
+    <form method="post" action="/admin/results">
+      <div class="results-form">
+        <h4>Enter Match Results</h4>
+        <p class="text-muted">Enter the final scores for all 6 fixtures. This will calculate all user points automatically.</p>
+
+        {% for fixture in fixtures %}
+        <div class="card result-card">
+          <div class="card-header">
+            <h5>Fixture {{ fixture.fixture_order }}</h5>
+            <small class="text-muted">{{ fixture.kickoff_time.format("%A, %B %d at %I:%M %p") }}</small>
+          </div>
+          <div class="card-body">
+            <div class="match-result">
+              <div class="team-score">
+                <div class="team-name">
+                  <strong>{{ fixture.home_team }}</strong>
+                  <span class="text-muted">(Home)</span>
+                </div>
+                <input type="number"
+                       name="results[{{ loop.index0 }}].home_score"
+                       class="form-control score-input"
+                       min="0"
+                       max="20"
+                       value="{% if fixture.home_score %}{{ fixture.home_score }}{% endif %}"
+                       {% if fixture.home_score %}readonly{% endif %}
+                       required>
+              </div>
+
+              <div class="score-separator">-</div>
+
+              <div class="team-score">
+                <div class="team-name">
+                  <strong>{{ fixture.away_team }}</strong>
+                  <span class="text-muted">(Away)</span>
+                </div>
+                <input type="number"
+                       name="results[{{ loop.index0 }}].away_score"
+                       class="form-control score-input"
+                       min="0"
+                       max="20"
+                       value="{% if fixture.away_score %}{{ fixture.away_score }}{% endif %}"
+                       {% if fixture.away_score %}readonly{% endif %}
+                       required>
+              </div>
+
+              <input type="hidden" name="results[{{ loop.index0 }}].fixture_id" value="{{ fixture.id }}">
+            </div>
+
+            {% if fixture.home_score and fixture.away_score %}
+            <div class="result-status">
+              <span class="badge badge-success">✅ Result Submitted</span>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      {% set all_results_submitted = fixtures|selectattr("home_score")|list|length == 6 %}
+
+      {% if not all_results_submitted %}
+      <div class="text-center mt-4">
+        <button type="submit" class="btn btn-primary btn-lg">
+          Submit All Results & Calculate Points
+        </button>
+        <p class="text-muted mt-2">
+          This will automatically calculate points for all users and update leaderboards.
+        </p>
+      </div>
+      {% else %}
+      <div class="alert alert-success text-center">
+        <h4>✅ All Results Submitted!</h4>
+        <p>All match results have been entered and user points have been calculated.</p>
+        <a href="/leaderboard/weekly" class="btn btn-primary">View Weekly Leaderboard</a>
+      </div>
+      {% endif %}
+    </form>
+
+    <!-- Results Summary -->
+    {% if all_results_submitted %}
+    <div class="card mt-4">
+      <div class="card-header">
+        <h4>Final Results Summary</h4>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+            <tr>
+              <th>#</th>
+              <th>Match</th>
+              <th>Result</th>
+              <th>Kickoff</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for fixture in fixtures %}
+            <tr>
+              <td>{{ fixture.fixture_order }}</td>
+              <td>
+                <strong>{{ fixture.home_team }}</strong> vs <strong>{{ fixture.away_team }}</strong>
+              </td>
+              <td>
+                                                        <span class="final-score">
+                                                            {{ fixture.home_score }} - {{ fixture.away_score }}
+                                                        </span>
+              </td>
+              <td>{{ fixture.kickoff_time.format("%m/%d %I:%M %p") }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="alert alert-warning">
+      <strong>Incomplete Fixture Setup</strong><br>
+      This gameweek only has {{ fixtures|length }} fixtures set up. You need exactly 6 fixtures before you can submit results.
+      <a href="/admin/fixtures" class="btn btn-primary mt-2">Setup Fixtures</a>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="alert alert-warning">
+      <strong>No Fixtures Found</strong><br>
+      You need to set up fixtures for this gameweek before submitting results.
+      <a href="/admin/fixtures" class="btn btn-primary mt-2">Setup Fixtures</a>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="alert alert-warning">
+      <strong>No Active Gameweek</strong><br>
+      You need to create and activate a gameweek before submitting results.
+      <a href="/admin/gameweeks" class="btn btn-primary mt-2">Create Gameweek</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<style>
+  .results-form {
+    margin-bottom: 2rem;
+  }
+
+  .result-card {
+    margin-bottom: 1rem;
+  }
+
+  .match-result {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 1rem;
+    align-items: center;
+  }
+
+  .team-score {
+    text-align: center;
+  }
+
+  .team-name {
+    margin-bottom: 0.5rem;
+  }
+
+  .team-name .text-muted {
+    display: block;
+    font-size: 0.875rem;
+  }
+
+  .score-input {
+    width: 80px;
+    margin: 0 auto;
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: bold;
+  }
+
+  .score-input[readonly] {
+    background-color: #e9ecef;
+    cursor: not-allowed;
+  }
+
+  .score-separator {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #6c757d;
+  }
+
+  .result-status {
+    margin-top: 1rem;
+    text-align: center;
+  }
+
+  .final-score {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #28a745;
+    background-color: #d4edda;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+  }
+
+  .badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .badge-success {
+    background-color: #28a745;
+    color: white;
+  }
+
+  .btn-lg {
+    padding: 0.75rem 2rem;
+    font-size: 1.1rem;
+  }
+
+  @media (max-width: 768px) {
+    .match-result {
+      grid-template-columns: 1fr;
+      gap: 0.5rem;
+      text-align: center;
+    }
+
+    .score-separator {
+      order: 2;
+      margin: 0.5rem 0;
+    }
+
+    .team-score:first-child {
+      order: 1;
+    }
+
+    .team-score:last-child {
+      order: 3;
+    }
+
+    .d-flex {
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .table {
+      font-size: 0.875rem;
+    }
+  }
+</style>
+{% endblock %}

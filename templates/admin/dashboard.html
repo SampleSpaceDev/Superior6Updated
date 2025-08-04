@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <h2>Admin Dashboard</h2>
+  </div>
+  <div class="card-body">
+    <div class="admin-stats">
+      <div class="stat-card">
+        <h3>{{ total_users }}</h3>
+        <p>Total Players</p>
+      </div>
+
+      {% if active_gameweek %}
+      <div class="stat-card active">
+        <h3>GW {{ active_gameweek.week_number }}</h3>
+        <p>{{ active_gameweek.season }}</p>
+        <small>{% if active_gameweek.is_completed %}Completed{% else %}Active{% endif %}</small>
+      </div>
+      {% else %}
+      <div class="stat-card inactive">
+        <h3>No Active</h3>
+        <p>Gameweek</p>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="admin-actions">
+      <h3>Quick Actions</h3>
+      <div class="action-buttons">
+        <a href="/admin/gameweeks" class="btn btn-primary">Manage Gameweeks</a>
+        <a href="/admin/fixtures" class="btn btn-primary">Setup Fixtures</a>
+        <a href="/admin/results" class="btn btn-primary">Submit Results</a>
+      </div>
+    </div>
+
+    {% if recent_gameweeks %}
+    <div class="recent-gameweeks">
+      <h3>Recent Gameweeks</h3>
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+          <tr>
+            <th>Week</th>
+            <th>Season</th>
+            <th>Deadline</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+          </thead>
+          <tbody>
+          {% for gameweek in recent_gameweeks %}
+          <tr>
+            <td>{{ gameweek.week_number }}</td>
+            <td>{{ gameweek.season }}</td>
+            <td>{{ gameweek.deadline.format("%m/%d/%Y %I:%M %p") }}</td>
+            <td>
+              {% if gameweek.is_active %}
+              <span class="badge badge-success">Active</span>
+              {% else if gameweek.is_completed %}
+              <span class="badge badge-secondary">Completed</span>
+              {% else %}
+              <span class="badge badge-warning">Inactive</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if gameweek.is_active %}
+              <a href="/admin/fixtures" class="btn btn-sm btn-primary">Fixtures</a>
+              <a href="/admin/results" class="btn btn-sm btn-secondary">Results</a>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<style>
+  .admin-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .stat-card {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 1.5rem;
+    border-radius: 8px;
+    text-align: center;
+    border: 2px solid #dee2e6;
+  }
+
+  .stat-card.active {
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    border-color: #28a745;
+  }
+
+  .stat-card.inactive {
+    background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+    border-color: #dc3545;
+  }
+
+  .stat-card h3 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    color: #495057;
+  }
+
+  .stat-card.active h3,
+  .stat-card.inactive h3 {
+    color: #212529;
+  }
+
+  .stat-card p {
+    margin-bottom: 0.25rem;
+    font-weight: 500;
+    color: #6c757d;
+  }
+
+  .stat-card small {
+    font-size: 0.8rem;
+    color: #6c757d;
+  }
+
+  .admin-actions {
+    margin-bottom: 2rem;
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  .badge-success {
+    background-color: #28a745;
+    color: white;
+  }
+
+  .badge-secondary {
+    background-color: #6c757d;
+    color: white;
+  }
+
+  .badge-warning {
+    background-color: #ffc107;
+    color: #212529;
+  }
+
+  .btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+  }
+
+  .table-responsive {
+    overflow-x: auto;
+  }
+
+  @media (max-width: 768px) {
+    .admin-stats {
+      grid-template-columns: 1fr;
+    }
+
+    .action-buttons {
+      flex-direction: column;
+    }
+
+    .action-buttons .btn {
+      text-align: center;
+    }
+  }
+</style>
+{% endblock %}

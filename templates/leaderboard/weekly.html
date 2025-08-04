@@ -1,0 +1,462 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="leaderboard-header">
+  <h2>Weekly Leaderboard</h2>
+  {% if not error.is_some() %}
+  <p>{{ season }} - Gameweek {{ week_number }}</p>
+  {% endif %}
+  <div class="leaderboard-nav">
+    <a href="/leaderboard" class="btn btn-secondary">Season</a>
+    <a href="/leaderboard/weekly" class="btn btn-primary active">Weekly</a>
+  </div>
+</div>
+
+<div class="leaderboard-container">
+  {% if error.is_some() %}
+  <div class="card">
+    <div class="card-body text-center">
+      <div class="alert alert-warning">{{ error.as_ref().unwrap() }}</div>
+      <a href="/leaderboard" class="btn btn-primary">View Season Leaderboard</a>
+    </div>
+  </div>
+  {% else if leaderboard %}
+  <div class="card">
+    <div class="card-body">
+      <div class="week-info">
+        <h4>Gameweek {{ week_number }} Results</h4>
+        <p class="text-muted">Points earned this week</p>
+      </div>
+
+      <div class="leaderboard-table">
+        <div class="table-header">
+          <div class="pos-col">Pos</div>
+          <div class="player-col">Player</div>
+          <div class="points-col">Points</div>
+          <div class="exact-col">Exact</div>
+          <div class="correct-col">Correct</div>
+        </div>
+
+        {% for player in leaderboard %}
+        <div class="table-row {% if user.is_some() %}{% let current_user = user.as_ref().unwrap() %}{% if player.user.id == current_user.id %}current-user{% endif %}{% endif %} {% if player.position <= 3 %}top-{{ player.position }}{% endif %}">
+          <div class="pos-col">
+            <div class="position-badge">
+              {% if player.position == 1 and player.score > 0 %}🥇{% else if player.position == 2 and player.score > 0 %}🥈{% else if player.position == 3 and player.score > 0 %}🥉{% else %}{{ player.position }}{% endif %}
+            </div>
+          </div>
+          <div class="player-col">
+            <div class="player-info">
+              <div class="player-name">{{ player.user.display_name }}</div>
+              {% if user.is_some() and player.user.id == user.id %}
+              <div class="player-label">You</div>
+              {% endif %}
+              {% if player.score == 0 %}
+              <div class="no-predictions">No predictions</div>
+              {% endif %}
+            </div>
+          </div>
+          <div class="points-col">
+            <div class="points-value {% if player.score == 0 %}zero-points{% endif %}">
+              {{ player.score }}
+            </div>
+          </div>
+          <div class="exact-col">
+            <div class="stat-value">{{ player.exact_scores }}</div>
+          </div>
+          <div class="correct-col">
+            <div class="stat-value">{{ player.correct_results }}</div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Week Stats -->
+  <div class="card">
+    <div class="card-header">
+      <h3>Gameweek {{ week_number }} Stats</h3>
+    </div>
+    <div class="card-body">
+      <div class="summary-stats">
+        <div class="summary-item">
+          <div class="summary-value">{{ leaderboard|selectattr("score", "gt", 0)|list|length }}</div>
+          <div class="summary-label">Players with Points</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-value">{{ leaderboard|selectattr("score", "gt", 0)|map(attribute="score")|max if leaderboard|selectattr("score", "gt", 0)|list else 0 }}</div>
+          <div class="summary-label">Highest Score</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-value">{{ leaderboard|sum(attribute="exact_scores") }}</div>
+          <div class="summary-label">Total Exact Scores</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-value">{{ leaderboard|sum(attribute="correct_results") }}</div>
+          <div class="summary-label">Total Correct Results</div>
+        </div>
+      </div>
+
+      {% set players_with_points = leaderboard|selectattr("score", "gt", 0)|list %}
+      {% if players_with_points|length > 0 %}
+      <div class="average-info">
+        <p class="text-muted text-center mt-3">
+          Average score among players with points:
+          <strong>{{ (players_with_points|sum(attribute="score") / players_with_points|length)|round(1) }}</strong>
+        </p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Performance Categories -->
+  {% set perfect_players = leaderboard|selectattr("score", "eq", 30)|list %}
+  {% set excellent_players = leaderboard|selectattr("score", "ge", 20)|rejectattr("score", "eq", 30)|list %}
+  {% set good_players = leaderboard|selectattr("score", "ge", 10)|rejectattr("score", "ge", 20)|list %}
+
+  {% if perfect_players or excellent_players or good_players %}
+  <div class="card">
+    <div class="card-header">
+      <h3>Performance Categories</h3>
+    </div>
+    <div class="card-body">
+      <div class="performance-categories">
+        {% if perfect_players %}
+        <div class="category-item perfect">
+          <h4>🎯 Perfect Week (30 points)</h4>
+          <div class="category-players">
+            {% for player in perfect_players %}
+            <span class="player-tag">{{ player.user.display_name }}</span>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        {% if excellent_players %}
+        <div class="category-item excellent">
+          <h4>🔥 Excellent (20+ points)</h4>
+          <div class="category-players">
+            {% for player in excellent_players %}
+            <span class="player-tag">{{ player.user.display_name }} ({{ player.score }})</span>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+        {% if good_players %}
+        <div class="category-item good">
+          <h4>👍 Good Week (10+ points)</h4>
+          <div class="category-players">
+            {% for player in good_players %}
+            <span class="player-tag">{{ player.user.display_name }} ({{ player.score }})</span>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {% else %}
+  <div class="card">
+    <div class="card-body text-center">
+      <h4>No Weekly Data Available</h4>
+      <p class="text-muted">Check back after the gameweek is completed!</p>
+      <a href="/leaderboard" class="btn btn-primary">View Season Leaderboard</a>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<style>
+  .leaderboard-header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .leaderboard-header h2 {
+    color: #495057;
+    margin-bottom: 0.5rem;
+  }
+
+  .leaderboard-header p {
+    color: #6c757d;
+    margin-bottom: 1.5rem;
+  }
+
+  .leaderboard-nav {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+  }
+
+  .leaderboard-nav .btn.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+  }
+
+  .leaderboard-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .week-info {
+    text-align: center;
+    margin-bottom: 1.5rem;
+  }
+
+  .week-info h4 {
+    color: #495057;
+    margin-bottom: 0.25rem;
+  }
+
+  .leaderboard-table {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .table-header,
+  .table-row {
+    display: grid;
+    grid-template-columns: 60px 1fr 80px 60px 60px;
+    gap: 1rem;
+    align-items: center;
+    padding: 1rem;
+  }
+
+  .table-header {
+    background-color: #f8f9fa;
+    border-radius: 8px 8px 0 0;
+    font-weight: 600;
+    color: #495057;
+    border-bottom: 2px solid #dee2e6;
+  }
+
+  .table-row {
+    border-bottom: 1px solid #f1f3f4;
+    transition: background-color 0.2s;
+  }
+
+  .table-row:hover {
+    background-color: #f8f9fa;
+  }
+
+  .table-row:last-child {
+    border-bottom: none;
+    border-radius: 0 0 8px 8px;
+  }
+
+  .current-user {
+    background-color: #e3f2fd !important;
+    border: 2px solid #2196f3;
+    border-radius: 8px;
+    margin: 2px 0;
+  }
+
+  .top-1 {
+    background: linear-gradient(135deg, #fff9c4 0%, #fff3a0 100%);
+  }
+
+  .top-2 {
+    background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  }
+
+  .top-3 {
+    background: linear-gradient(135deg, #fef3e2 0%, #fed7aa 100%);
+  }
+
+  .position-badge {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    background-color: #f8f9fa;
+    border: 2px solid #dee2e6;
+  }
+
+  .player-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .player-name {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 0.25rem;
+  }
+
+  .player-label {
+    font-size: 0.75rem;
+    background-color: #667eea;
+    color: white;
+    padding: 0.125rem 0.5rem;
+    border-radius: 12px;
+    font-weight: 500;
+  }
+
+  .no-predictions {
+    font-size: 0.75rem;
+    color: #dc3545;
+    font-style: italic;
+  }
+
+  .points-value {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: #28a745;
+  }
+
+  .points-value.zero-points {
+    color: #6c757d;
+  }
+
+  .stat-value {
+    font-weight: 600;
+    color: #495057;
+  }
+
+  .summary-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+  }
+
+  .summary-item {
+    text-align: center;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+  }
+
+  .summary-value {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #667eea;
+    margin-bottom: 0.25rem;
+  }
+
+  .summary-label {
+    font-size: 0.875rem;
+    color: #6c757d;
+    font-weight: 500;
+  }
+
+  .performance-categories {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .category-item {
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 4px solid;
+  }
+
+  .category-item.excellent {
+    background-color: #d4edda;
+    border-left-color: #28a745;
+  }
+
+  .category-item.good {
+    background-color: #d1ecf1;
+    border-left-color: #17a2b8;
+  }
+
+  .category-item h4 {
+    margin-bottom: 0.75rem;
+    color: #495057;
+  }
+
+  .category-players {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .player-tag {
+    background-color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 16px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #495057;
+    border: 1px solid #dee2e6;
+  }
+
+  @media (max-width: 768px) {
+    .leaderboard-nav {
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .leaderboard-nav .btn {
+      width: 200px;
+    }
+
+    .table-header,
+    .table-row {
+      grid-template-columns: 50px 1fr 60px;
+      gap: 0.5rem;
+      padding: 0.75rem;
+    }
+
+    .exact-col,
+    .correct-col {
+      display: none;
+    }
+
+    .player-name {
+      font-size: 0.9rem;
+    }
+
+    .points-value {
+      font-size: 1.1rem;
+    }
+
+    .summary-stats {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .performance-categories {
+      gap: 0.75rem;
+    }
+
+    .category-item {
+      padding: 0.75rem;
+    }
+
+    .category-players {
+      gap: 0.25rem;
+    }
+
+    .player-tag {
+      font-size: 0.8rem;
+      padding: 0.2rem 0.5rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .summary-stats {
+      grid-template-columns: 1fr;
+    }
+
+    .table-header,
+    .table-row {
+      padding: 0.5rem;
+    }
+
+    .position-badge {
+      width: 35px;
+      height: 35px;
+      font-size: 0.9rem;
+    }
+  }
+</style>
+{% endblock %}
